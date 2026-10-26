@@ -1,0 +1,140 @@
+using System;
+using System.Collections.Generic;
+
+interface IBattery
+{
+    int RemainingEnergy { get; }
+    void Consume(int amount);
+    void Recharge(int amount);
+}
+
+class LithiumBattery : IBattery
+{
+    private int _remainingEnergy = 100;
+
+    public int RemainingEnergy
+    {
+        get { return _remainingEnergy; }
+    }
+
+    public void Consume(int amount)
+    {
+        _remainingEnergy = Math.Max(0, _remainingEnergy - Math.Max(0, amount));
+    }
+
+    public void Recharge(int amount)
+    {
+        _remainingEnergy = Math.Min(100, _remainingEnergy + Math.Max(0, amount));
+    }
+}
+
+class SolarBattery : IBattery
+{
+    private int _remainingEnergy = 100;
+
+    public int RemainingEnergy
+    {
+        get { return _remainingEnergy; }
+    }
+
+    public void Consume(int amount)
+    {
+        _remainingEnergy = Math.Max(0, _remainingEnergy - Math.Max(0, amount));
+    }
+
+    public void Recharge(int amount)
+    {
+        _remainingEnergy = Math.Min(100, _remainingEnergy + Math.Max(0, amount));
+    }
+}
+
+abstract class Robot
+{
+    private IBattery _battery;
+
+    public string Name { get; set; }
+
+    public int RemainingEnergy
+    {
+        get { return _battery.RemainingEnergy; }
+    }
+
+    public Robot(string name, IBattery battery)
+    {
+        Name = name;
+        _battery = battery;
+    }
+
+    public void Recharge(int amount)
+    {
+        _battery.Recharge(amount);
+    }
+
+    protected void UseEnergy(int amount)
+    {
+        _battery.Consume(amount);
+    }
+
+    public abstract void PerformTask();
+}
+
+class CleaningRobot : Robot
+{
+    public CleaningRobot(string name, IBattery battery)
+        : base(name, battery) { }
+
+    public override void PerformTask()
+    {
+        UseEnergy(10);
+        Console.WriteLine(Name + " is cleaning. Energy: " + RemainingEnergy);
+    }
+}
+
+class DeliveryRobot : Robot
+{
+    public DeliveryRobot(string name, IBattery battery)
+        : base(name, battery) { }
+
+    public override void PerformTask()
+    {
+        UseEnergy(25);
+        Console.WriteLine(Name + " is delivering. Energy: " + RemainingEnergy);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Robot cleaner = new CleaningRobot(
+            "Cleaner Robot", new LithiumBattery());
+
+        Robot delivery = new DeliveryRobot(
+            "Delivery Robot", new SolarBattery());
+
+        List<Robot> robots = new List<Robot>();
+        robots.Add(cleaner);
+        robots.Add(delivery);
+
+        Console.WriteLine("Initial Energy:");
+        foreach (Robot robot in robots)
+        {
+            Console.WriteLine(robot.Name + ": " + robot.RemainingEnergy);
+        }
+
+        Console.WriteLine("\nPerforming Tasks:");
+        foreach (Robot robot in robots)
+        {
+            robot.PerformTask();
+        }
+
+        Console.WriteLine("\nRecharging Robots:");
+        cleaner.Recharge(20);
+        delivery.Recharge(10);
+
+        foreach (Robot robot in robots)
+        {
+            Console.WriteLine(robot.Name + ": " + robot.RemainingEnergy);
+        }
+    }
+}
